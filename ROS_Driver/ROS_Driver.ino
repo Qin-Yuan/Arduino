@@ -38,7 +38,7 @@ void setup() {
 
 // 主程序
 void loop() {
-    serial();
+    //serial();
     // 间隔适当的时间进行PID控制
     if (millis() > nextPID) {
         updatePID();   // PID调速
@@ -168,7 +168,7 @@ int runCommand() {
  * 在argv2中。
  * serialEvent()是IDE1.0及以后版本新增的功能，相当于外部中断
  **********************************************************/
-void serial() {
+void serialEvent() {
     // 读取串口命令
     while (Serial.available() > 0) {
         // 读取串口数据
