@@ -14,17 +14,21 @@ typedef struct {
 	long Encoder;                  // 编码器计数
 	long PrevEnc;                  // 上次编码器计数
 	int PrevInput;                 // 上次输入
-	//int PrevErr;                 // 上次误差
+	int PrevErr;                   // 上次误差
 	int ITerm;                     // 累计误差值
 	long output;                   // PWM输出值
+  int Kp;                        // 20
+  int Kd;                        // 12
+  int Ki;                        // 0
+  int Ko;                        // 50
 } SetPointInfo;
 
 SetPointInfo leftPID, rightPID;   // 实例化左右电机结构体变量
 
 // PID各参数值     理想值
-int Kp = 20;    // 20
-int Kd = 15;    // 12
-int Ki = 0.2;     // 0
+int Kp = 23;    // 20
+int Kd = 12;    // 12
+int Ki = 0;     // 0
 int Ko = 50;    // 50
 
 unsigned char moving = 0; 		// 运动标志位 
@@ -48,6 +52,16 @@ void resetPID(){
 	rightPID.output = 0;
 	rightPID.PrevInput = 0;
 	rightPID.ITerm = 0;
+  // 左电机 PID各参数值     理想值
+  leftPID.Kp = 20;    // 20
+  leftPID.Kd = 12;    // 12
+  leftPID.Ki = 0;     // 0
+  leftPID.Ko = 50;    // 50
+  // 右电机 PID各参数值     理想值
+  rightPID.Kp = 21;    // 20
+  rightPID.Kd = 12;    // 12
+  rightPID.Ki = 0;     // 0
+  rightPID.Ko = 50;    // 50
 }
 
 /****************************************
@@ -63,9 +77,9 @@ void doPID(SetPointInfo *p) {
 	//Perror = p->TargetTicksPerFrame - (p->Encoder - p->PrevEnc);
 	input = p->Encoder - p->PrevEnc;
 	Perror = p->TargetTicksPerFrame - input;
-	//output = (Kp * Perror + Kd * (Perror - p->PrevErr) + Ki * p->Ierror) / Ko;
+	//output = (p->Kp * Perror + p->Kd * (Perror - p->PrevErr) + p->Ki * p->Ierror) / p->Ko;
 	// p->PrevErr = Perror;
-	output = (Kp * Perror - Kd * (input - p->PrevInput) + p->ITerm) / Ko;
+	output = (p->Kp * Perror - p->Kd * (input - p->PrevInput) + p->ITerm) / p->Ko;
 	p->PrevEnc = p->Encoder;
 	output += p->output;
 	if (output >= MAX_PWM)
@@ -73,7 +87,7 @@ void doPID(SetPointInfo *p) {
 	else if (output <= -MAX_PWM)
 		output = -MAX_PWM;
 	else
-		p->ITerm += Ki * Perror;
+		p->ITerm += p->Ki * Perror;
 	p->output = output;
 	p->PrevInput = input;
 	// PID参数图形调节
